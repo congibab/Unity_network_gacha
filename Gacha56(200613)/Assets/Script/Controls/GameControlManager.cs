@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -27,6 +28,14 @@ public class GameControlManager : MonoBehaviour
     //ガチャボタンの有効、無効を設定するための取得
     [SerializeField]
     private Button _gachaButton = null;
+
+    //card detail information
+    [SerializeField]
+    private Text _cardInofText = null;
+
+    //gacha image
+    [SerializeField]
+    private Image _gachaImage = null;
 
     //初期化関数
 
@@ -118,5 +127,47 @@ public class GameControlManager : MonoBehaviour
         });
     }
 
+    /// <summary>
+    /// カード情報を得取する
+    /// </summary>
+    public void OnCardInfo()
+    {
+        if (0 > _gachaListCongtrol.selectIndex)
+            return;
+        _networkControl.GetcardInfo(_gachaListCongtrol.cardNumber, (str) =>
+        {
+            // Json class
+            var cardInfoClass = JsonUtility.FromJson<getGachInfoClass>(str);
+            var res = cardInfoClass.response[0];
+            string msg = "ID" + res.id.ToString() + Environment.NewLine;
+            msg += "名前：" + res.name + Environment.NewLine;
+            msg += "攻撃力" + res.offence.ToString() + Environment.NewLine;
+            msg += "防御力" + res.defence.ToString() + Environment.NewLine;
+            msg += "内容" + res.text;
+            //カードの表示内容をテキストで表示
+            _cardInofText.text = msg;
+            
+        });
+    }
+
+    /// <summary>
+    /// 選択したカードのイメージを表示する
+    /// </summary>
+    public void OnGetImage()
+    {
+        if (0 > _gachaListCongtrol.selectIndex)
+            return;
+        _networkControl.GetGachaImage(_gachaListCongtrol.cardNumber, (str) =>
+        {   //ok の文字を情報window表示
+            _cardInofText.text = str;
+            //texture 生成
+            Texture2D texture = new Texture2D(1, 1);
+            
+            texture.LoadImage(NetworkData.imageData);
+            //image view
+            _gachaImage.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero);
+            _gachaImage.gameObject.SetActive(true);
+        });
+    }
 
 }

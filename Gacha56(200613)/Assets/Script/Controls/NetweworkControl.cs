@@ -333,4 +333,71 @@ public class NetweworkControl : MonoBehaviour
             }));
     }
     #endregion
+
+    /// <summary>
+    /// card information view
+    /// </summary>
+    /// <param name="gachaIndex">得取するカード番号</param>
+    /// <param name="callback">引数 Json の値を渡すコールバック</param>
+    #region ガード情報の表示
+
+    public void GetcardInfo(int gachaIndex, Action<string> callback = null)
+    {
+       
+        _callback = callback;
+        //送信添付deta list 準備
+        var cardUrl = NetworkData.getCardInfo + gachaIndex.ToString();
+        // HTTP post Coroutine 
+        StartCoroutine(HttpGet(cardUrl,
+            (jsonText) =>
+            {
+                // Json をクラスに格納
+                var cardInfoClass = JsonUtility.FromJson<getGachInfoClass>(jsonText);
+                // callback 
+                if (null != _callback)
+                {
+                    _callback(jsonText);
+                    _callback = null;
+                }
+                //status code
+                Debug.Log("status_code = " + cardInfoClass.status_code);
+            }));
+    }
+
+
+    #endregion
+
+    #region
+
+    /// <summary>
+    /// get card image
+    /// </summary>
+    /// <param name="cardIndex">所得するカード番号</param>
+    /// <param name="callback">とりあえずokを返す</param>
+    public void GetGachaImage(int cardIndex, Action<string> callback = null)
+    {
+        _callback = callback;
+        // TODO: 一時的にカードの番号を1にする（今のところ1種類しかないため）
+        cardIndex = 1;
+        // image URLの生成
+        var imageUrl = NetworkData.getImageURL + cardIndex.ToString();
+        //HTTP Get corutine
+        StartCoroutine(HttpGetBinary(imageUrl,
+            (jsonBin) =>
+            {
+                NetworkData.imageData = jsonBin;
+                // callback が存在すつならcallback実行
+                if(null !=callback)
+                {
+                    _callback("ok");
+                    _callback = null;
+                }
+                // status code をdebug logする
+                //Debug.Log("status_code" + cardInfoclass.status_code);
+            }));
+    }
+
+
+    #endregion
+
 }
